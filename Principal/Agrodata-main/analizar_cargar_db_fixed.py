@@ -10,8 +10,8 @@ warnings.filterwarnings('ignore')
 # =====================================================
 # CONFIGURACIÓN DIRECTA
 # =====================================================
-CONN_STR = 'postgresql+psycopg2://postgres:payola@localhost:5432/plagas'
-CWD = r'C:/Users/Paoco/Documents/Agrodata-Ats/Principal/Agrodata-main'
+CONN_STR = 'postgresql+psycopg2://postgres:12345@localhost:5432/plagas'
+CWD = r'C:\Users\leogo\OneDrive\Documentos\GitHub\Agrodata\Principal\Agrodata-main'
 # =====================================================
 
 def map_risk_pct_to_nivel(risk_pct):
