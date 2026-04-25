@@ -10,8 +10,8 @@ warnings.filterwarnings('ignore')
 # =====================================================
 # CONFIGURACIÓN DIRECTA
 # =====================================================
-CONN_STR = 'postgresql://postgres:12345@localhost:5432/plagas'
-CWD = r'c:/Users/leogo/Documents/Ordonez_Analisis_de_Datos'
+CONN_STR = 'postgresql+psycopg2://postgres:12345@localhost:5432/plagas'
+CWD = r'C:\Users\leogo\OneDrive\Documentos\GitHub\Agrodata\Principal\Agrodata-main'
 # =====================================================
 
 def map_risk_pct_to_nivel(risk_pct):
@@ -62,28 +62,32 @@ def ejecutar_analisis_pendientes():
 
         # 4. Procesar e insertar diagnósticos
         print("Procesando diagnósticos...")
-        for idx, row in df_pendientes.iterrows():
+        for pos, (_, row) in enumerate(df_pendientes.iterrows()):
             id_lectura = int(row['id_lectura'])
-            
-            # Predicción con los modelos cargados
-            x_input = X_scaled[idx:idx+1]
-            risks = {p_id: models[p_id].predict_proba(x_input)[0][1] for p_id in plaga_ids}
+
+            x_input = X_scaled[pos:pos+1]
+
+            risks = {
+                p_id: models[p_id].predict_proba(x_input)[0][1]
+                for p_id in plaga_ids
+            }
             
             if risks:
-                top_plaga = max(risks, key=risks.get)
-                probabilidad = risks[top_plaga]
+                top_plaga = int(max(risks, key=risks.get))
+                probabilidad = float(risks[top_plaga])
                 nivel = map_risk_pct_to_nivel(probabilidad)
                 
                 # Insertar en la tabla diagnostico
                 insert_query = text("""
-                    INSERT INTO diagnostico (id_lectura, id_tipo_plaga, nivel_riesgo, fecha)
-                    VALUES (:id_l, :id_p, :nivel, NOW())
+                    INSERT INTO diagnostico (id_lectura, id_tipo_plaga, nivel_riesgo, probabilidad, fecha)
+                    VALUES (:id_l, :id_p, :nivel, :prob, NOW())
                 """)
                 
                 conn.execute(insert_query, {
-                    'id_l': id_lectura,
-                    'id_p': top_plaga,
-                    'nivel': nivel
+                    'id_l': int(id_lectura),
+                    'id_p': int(top_plaga),
+                    'nivel': str(nivel),
+                    'prob': float(probabilidad)
                 })
                 count += 1
         
